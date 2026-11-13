@@ -1,0 +1,9 @@
+{% extends 'showcase/base.html' %}{% block content %}
+<nav class="page-actions" aria-label="Project actions"><a href="{% url 'showcase:gallery' %}?event={{ project.event_id }}">← All projects</a>{% if assignment %}<a class="button" href="{% url 'showcase:review' assignment.pk %}">Review this project →</a>{% endif %}</nav>
+{% include 'showcase/project_overview.html' %}
+<div class="review-videos">
+{% include 'showcase/video_panel.html' with video=project.video label='Presentation video' %}
+{% include 'showcase/video_panel.html' with video=project.demo_video label='Demo video' %}
+</div>
+
+{% endblock %}

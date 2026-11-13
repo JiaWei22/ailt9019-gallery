@@ -1,0 +1,28 @@
+{% extends "reviews/base.html" %}
+{% block title %}Your reviews · {{ event.title }}{% endblock %}
+{% block content %}
+<p class="meta"><a href="{% url 'my_reviews' %}">Choose event</a> · <a href="{% url 'event_list' %}">All events</a></p>
+<div class="event-banner">
+  <span class="section-kicker">{{ event.get_kind_display }} event</span>
+  <h1>{{ event.title }}</h1>
+</div>
+{% include "reviews/event_tabs.html" %}
+<p class="lede">Reviews you submitted as {{ current_reviewer.code }}.</p>
+{% for review in reviews %}
+  <article class="assignment-card">
+    <div class="assignment-top">
+      <span class="section-kicker">Review {{ forloop.counter }} of {{ reviews|length }}</span>
+      <span class="status done">{% if review.edit_allowed %}Edit allowed{% else %}Submitted{% endif %}</span>
+    </div>
+    <h3>{{ review.assignment.proposal.anonymous_title }}</h3>
+    <p class="meta">Content {{ review.content_total }}/40 + Delivery {{ review.delivery_total }}/10 = {{ review.total }}/50 · {{ review.submitted_at }}</p>
+    {% if review.suggestions %}<p>{{ review.suggestions }}</p>{% endif %}
+    <p>
+      <a class="btn" href="{% url 'review_form' review.assignment.pk %}">Open</a>
+      <a class="btn secondary" href="{% url 'forum' review.assignment.proposal.pk %}">Submission</a>
+    </p>
+  </article>
+{% empty %}
+  <p>You have not submitted a review in this event yet.</p>
+{% endfor %}
+{% endblock %}

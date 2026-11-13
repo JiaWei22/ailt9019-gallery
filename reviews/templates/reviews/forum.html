@@ -1,0 +1,66 @@
+{% extends "reviews/base.html" %}
+{% block title %}{% if own_team %}Your submission{% else %}{{ proposal.anonymous_title }}{% endif %} · AILT9019{% endblock %}
+{% block content %}
+<p class="meta"><a href="{% url 'event_list' %}">Events</a>{% if proposal.event %} · <a href="{% url 'event_detail' proposal.event.slug %}">{{ proposal.event.title }}</a>{% endif %}
+  {% if own_team and proposal.event %} · <a href="{% url 'event_feedback' proposal.event.slug %}">Feedback for your team proposal</a>{% endif %}
+</p>
+
+<h1 class="forum-title">{% if own_team %}Your team's submission{% else %}{{ proposal.anonymous_title }}{% endif %}</h1>
+<p class="meta">{% if own_team %}Only your team sees this page as your own work.{% else %}Anonymous submission. The group is hidden.{% endif %}{% if proposal.event %} · {{ proposal.event.title }}{% endif %}</p>
+<section class="section">
+  <div class="section-head">
+    <span class="section-kicker">Submission</span>
+    <h2>PDF</h2>
+  </div>
+  {% if proposal.file %}
+    <p><a class="btn secondary" href="{% url 'proposal_file' proposal.pk %}">Download PDF</a></p>
+  {% else %}
+    <p class="status wait">PDF not uploaded yet</p>
+  {% endif %}
+</section>
+
+{% if assignment %}
+<section class="section">
+  <div class="section-head">
+    <span class="section-kicker">Your task</span>
+    <h2>Review</h2>
+  </div>
+  {% if my_review %}
+    <div class="review-box">
+      <h3>Submitted as {{ current_reviewer.code }}</h3>
+      <p class="meta">Content {{ my_review.content_total }}/40 + Delivery {{ my_review.delivery_total }}/10 = {{ my_review.total }}/50 · last update {{ my_review.updated_at }}</p>
+      {% if my_review.suggestions %}<p>{{ my_review.suggestions }}</p>{% endif %}
+      <a href="{% url 'review_form' assignment.pk %}">Open your review</a>
+    </div>
+  {% elif proposal.file %}
+    <a class="btn" href="{% url 'review_form' assignment.pk %}">Write review</a>
+  {% else %}
+    <p class="status wait">PDF not uploaded yet</p>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if own_team %}
+<section class="section">
+  <div class="section-head">
+    <span class="section-kicker">Feedback received</span>
+    <h2>Reviews of this proposal</h2>
+    <p>Only Reviewer IDs are shown.</p>
+  </div>
+  {% for review in incoming %}
+    <article class="review-box">
+      <span class="section-kicker">Review {{ forloop.counter }} of {{ incoming|length }}</span>
+      <h3>Reviewer {{ review.assignment.reviewer.code }}</h3>
+      <p class="meta">Content {{ review.content_total }}/40 + Delivery {{ review.delivery_total }}/10 = {{ review.total }}/50 · {{ review.submitted_at }}</p>
+      {% for row in review.score_rows %}
+        <div class="score-row"><span>{{ row.part }} · {{ row.label }}</span><strong>{{ row.score }} / {{ row.maximum }}</strong></div>
+        {% if row.note %}<p class="tiny">{{ row.note }}</p>{% endif %}
+      {% endfor %}
+      {% if review.suggestions %}<p><strong>Overall suggestions.</strong> {{ review.suggestions }}</p>{% endif %}
+    </article>
+  {% empty %}
+    <p>No reviews yet.</p>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

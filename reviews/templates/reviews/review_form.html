@@ -1,0 +1,108 @@
+{% extends "reviews/base.html" %}
+{% block title %}Review · AILT9019{% endblock %}
+{% block wrap_class %}wrap-wide{% endblock %}
+{% block content %}
+<p class="meta"><a href="{% url 'event_detail' assignment.event.slug %}">{{ assignment.event.title }}</a> · <a href="{% url 'forum' assignment.proposal.pk %}">Back to submission</a></p>
+<h1>{% if revising %}Revise review{% else %}Write review{% endif %}</h1>
+<p class="lede">{{ assignment.proposal.anonymous_title }} · reviewing as {{ current_reviewer.code }}.</p>
+{% if locked %}
+  <p class="banner">{{ lock_message }}</p>
+{% else %}
+<div class="review-split">
+  <aside class="pdf-preview">
+    <div class="section-head">
+      <span class="section-kicker">Submission</span>
+      <h2>PDF preview</h2>
+      <p><a href="{% url 'proposal_file' assignment.proposal.pk %}">Download PDF</a></p>
+    </div>
+    {% if preview_pages %}
+      <div class="pdf-pages">
+        {% for page in preview_pages %}
+          <img src="{% url 'proposal_preview_page' assignment.pk page %}" alt="Page {{ page }}">
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted">Preview is not available. Download the PDF instead.</p>
+    {% endif %}
+  </aside>
+
+  <form method="post" class="score-panel" id="review-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="section-head">
+      <span class="section-kicker">Scores</span>
+      <h2>Fill every cell</h2>
+      <p>Write one whole number in the Score column, inside the stated range. Optional note = one line of evidence (useful when the score is not near the top of the range).</p>
+    </div>
+    <div class="table-scroll">
+      <table class="score-sheet">
+        <thead>
+          <tr>
+            <th>Part</th>
+            <th>Criterion</th>
+            <th>Range</th>
+            <th>Score</th>
+            <th>Optional one-line note</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in criterion_rows %}
+            <tr>
+              <td>{% if row.show_part %}{{ row.part }}{% endif %}</td>
+              <td>{{ row.label }}</td>
+              <td>{{ row.range }}</td>
+              <td>{{ row.score }}{% if row.score.errors %}<p class="error">{{ row.score.errors.0 }}</p>{% endif %}</td>
+              <td>{{ row.note }}</td>
+            </tr>
+          {% endfor %}
+          <tr class="total-row">
+            <td>Total</td>
+            <td>Sum of all scores</td>
+            <td>0–50</td>
+            <td><strong id="grand-total">0</strong></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="totals-line">
+      Content <strong id="content-total">0</strong> / 40
+      &nbsp;+&nbsp;
+      Delivery <strong id="delivery-total">0</strong> / 10
+    </p>
+    <div class="suggestions-block">
+      <label for="{{ suggestions_field.id_for_label }}">{{ suggestions_field.label }}</label>
+      <p class="hint">Longer comments for the team. One-line notes above are for a single criterion.</p>
+      {{ suggestions_field }}
+      {% if suggestions_field.errors %}<p class="error">{{ suggestions_field.errors.0 }}</p>{% endif %}
+    </div>
+    <button type="submit">{% if revising %}Resubmit review{% else %}Submit review{% endif %}</button>
+  </form>
+</div>
+{% endif %}
+{% if not locked %}
+<script>
+(function () {
+  function sum(part) {
+    var total = 0;
+    document.querySelectorAll('.score-input[data-part="' + part + '"]').forEach(function (input) {
+      var value = parseInt(input.value, 10);
+      if (!isNaN(value)) total += value;
+    });
+    return total;
+  }
+  function refresh() {
+    var content = sum("content");
+    var delivery = sum("delivery");
+    document.getElementById("content-total").textContent = content;
+    document.getElementById("delivery-total").textContent = delivery;
+    document.getElementById("grand-total").textContent = content + delivery;
+  }
+  document.querySelectorAll(".score-input").forEach(function (input) {
+    input.addEventListener("input", refresh);
+  });
+  refresh();
+})();
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,24 @@
+<script>
+(() => {
+  const marker = '{{ session_marker|escapejs }}';
+  let checking = false;
+  async function checkSession() {
+    if (checking || document.hidden) return;
+    checking = true;
+    try {
+      const response = await fetch('{% url "showcase:session_state" %}', {cache:'no-store', credentials:'same-origin'});
+      if (response.ok && (await response.json()).marker !== marker) {
+        // Navigate with GET, including when this document was a POST preview.
+        const target = location.pathname.endsWith('/vote/preview/')
+          ? '{% url "showcase:vote" %}' + location.search : location.href;
+        location.replace(target);
+      }
+    } catch (_) { /* Network failure must not discard an unsaved draft. */ }
+    finally { checking = false; }
+  }
+  window.addEventListener('focus', checkSession);
+  window.addEventListener('pageshow', checkSession);
+  document.addEventListener('visibilitychange', checkSession);
+  setInterval(checkSession, 10000);
+})();
+</script>

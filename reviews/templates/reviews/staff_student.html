@@ -1,0 +1,68 @@
+{% extends "reviews/base.html" %}
+{% block title %}{{ student.name }} · Staff{% endblock %}
+{% block content %}
+<p class="meta"><a href="{% url 'staff_dashboard' %}#student-{{ student.pk }}">Roster</a> · <a href="{% url 'staff_team_stats' student.team_id %}">{{ student.team.name }} incoming reviews</a></p>
+<h1>{{ student.name }}</h1>
+<p class="lede">
+  UID <code>{{ student.student_id }}</code>
+  · {{ student.team.name }}
+  {% if identity %}· {{ identity.code }}{% endif %}
+  · password <code>{{ student.issued_password|default:"—" }}</code>
+</p>
+<div class="stat-grid">
+  <div class="stat-card"><div class="lbl">Assigned tasks</div><div class="num">{{ n_assigned }}</div></div>
+  <div class="stat-card"><div class="lbl">Submitted</div><div class="num">{{ n_submitted }}</div></div>
+  <div class="stat-card"><div class="lbl">Account</div><div class="num" style="font-size:16px">{% if identity and identity.is_activated %}Logged in{% elif identity %}Issued{% else %}No ID{% endif %}</div></div>
+</div>
+<p class="meta">
+  Email: {{ student.email|default:"—" }}
+  {% if identity and identity.last_login_at %}· Last login {{ identity.last_login_at|date:"M j, H:i" }}{% endif %}
+  {% if identity and identity.activated_at %}· First login {{ identity.activated_at|date:"M j, H:i" }}{% endif %}
+</p>
+<p class="meta">Reviews other people wrote about {{ student.team.name }} are on the <a href="{% url 'staff_team_stats' student.team_id %}">group page</a>.</p>
+
+<section class="panel">
+  <div class="section-head">
+    <h2>Assigned review tasks</h2>
+    <p>Every paper this student was asked to review, and whether they have finished it.</p>
+  </div>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Event</th>
+          <th>Assigned group</th>
+          <th>Status</th>
+          <th>C/40</th>
+          <th>D/10</th>
+          <th>Total</th>
+          <th>Submitted</th>
+          <th>Suggestions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in tasks %}
+          <tr class="{% if not task.done %}pending{% endif %}">
+            <td>{{ task.assignment.event.title }}</td>
+            <td><a href="{% url 'staff_team_stats' task.assignment.proposal.team_id %}">{{ task.assignment.proposal.team.name }}</a></td>
+            <td>
+              {% if task.done %}
+                <span class="status done">Submitted</span>
+              {% else %}
+                <span class="status wait">Not submitted</span>
+              {% endif %}
+            </td>
+            <td>{% if task.review %}{{ task.review.content_total }}{% else %}—{% endif %}</td>
+            <td>{% if task.review %}{{ task.review.delivery_total }}{% else %}—{% endif %}</td>
+            <td>{% if task.review %}{{ task.review.total }}{% else %}—{% endif %}</td>
+            <td>{% if task.review %}{{ task.review.submitted_at|date:"M j, H:i" }}{% else %}—{% endif %}</td>
+            <td>{% if task.review %}{{ task.review.suggestions|truncatechars:160 }}{% else %}—{% endif %}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="8">No review tasks assigned yet. Use Assign missing review tasks on the roster.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

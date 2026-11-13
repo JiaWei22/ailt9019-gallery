@@ -1,0 +1,11 @@
+Homepage slideshow images (temporary selection from the HKU/CDS AILT1001 website)
+1. campus.jpg — campus entrance
+2. lecture.webp — interactive lecture
+3. studio.jpg — project studio
+4. exhibition.webp — project exhibition
+
+Replace these files with your own photos using the same filename and matching image format.
+Recommended: landscape, 1920 × 1080 or larger; keep each file under about 600 KB.
+Captions, order and source credit: showcase/templates/showcase/course_home.html.
+Original source URLs are recorded in sources.json. These are reference-course photos, not AILT9019 event records.
+If changing filenames or formats, update course.py's asset allowlist and the template together.

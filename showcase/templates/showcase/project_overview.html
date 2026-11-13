@@ -1,0 +1,8 @@
+<section class="project-overview" aria-label="Project information">
+<p class="project-team"><span>Group</span> {{ project.team.name }}</p>
+<p class="project-code">{{ project.code }}</p><h1>{{ project.title }}</h1>
+{% if project.short_description and project.short_description != project.description %}<p class="project-summary">{{ project.short_description }}</p>{% endif %}
+<div class="project-introduction"><h2>Project introduction</h2>
+{% if project.description %}{{ project.description|linebreaks }}{% elif project.short_description %}{{ project.short_description|linebreaks }}{% else %}<p class="muted">No project introduction has been provided yet.</p>{% endif %}</div>
+<div class="project-resources">{% include 'showcase/project_links.html' %}</div>
+</section>

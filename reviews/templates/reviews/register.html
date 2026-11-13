@@ -1,0 +1,37 @@
+{% extends "reviews/base.html" %}
+{% block title %}Register · AILT9019{% endblock %}
+{% block content %}
+<h1>Student registration</h1>
+<p class="lede">Use the HKU UID and the same email as on the imported course / Moodle list. A one-time code is sent to that mailbox. After you verify, the system shows your Reviewer ID.</p>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+{% if demo_otp %}
+  <div class="banner"><strong>Email code for {{ pending_email }}:</strong> {{ demo_otp }}. Local demo also writes this to <code>var/otp_outbox/latest.txt</code>.</div>
+{% endif %}
+
+<div class="card">
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="step" value="start">
+    <label for="{{ start_form.student_id.id_for_label }}">{{ start_form.student_id.label }}</label>
+    {{ start_form.student_id }}
+    <label for="{{ start_form.email.id_for_label }}">{{ start_form.email.label }}</label>
+    {{ start_form.email }}
+    <button type="submit">Send email code</button>
+  </form>
+</div>
+
+{% if pending_email %}
+<div class="card">
+  <p class="meta">Enter the code for {{ pending_email }}.</p>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="step" value="verify">
+    <label for="{{ otp_form.code.id_for_label }}">{{ otp_form.code.label }}</label>
+    {{ otp_form.code }}
+    <button type="submit">Verify and activate</button>
+  </form>
+</div>
+{% endif %}
+
+<p>Already registered? <a href="{% url 'reviewer_login' %}">Log in</a>.</p>
+{% endblock %}

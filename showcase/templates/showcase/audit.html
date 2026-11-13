@@ -1,0 +1,1 @@
+{% extends 'showcase/base.html' %}{% block content %}<h1>AILT9019 audit history</h1>{% for x in entries %}<article class="card"><strong>{{ x.action }}</strong> · {{ x.actor }} · {{ x.created }}<pre style="white-space:pre-wrap">{{ x.details }}</pre></article>{% endfor %}{% endblock %}

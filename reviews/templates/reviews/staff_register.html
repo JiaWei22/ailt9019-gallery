@@ -1,0 +1,36 @@
+{% extends "reviews/base.html" %}
+{% block title %}Staff registration · AILT9019{% endblock %}
+{% block content %}
+<h1>Staff registration</h1>
+<p class="lede">Restricted to UIDs on the teaching-staff list. The UID must be unused, and the HKU email must verify.</p>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+{% if demo_otp %}
+  <div class="banner"><strong>Demo code:</strong> {{ demo_otp }} — sent only to {{ pending_email }} in production.</div>
+{% endif %}
+
+<div class="card">
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="step" value="start">
+    <label for="{{ start_form.uid.id_for_label }}">Staff UID</label>
+    {{ start_form.uid }}
+    <label for="{{ start_form.email.id_for_label }}">HKU email</label>
+    {{ start_form.email }}
+    <button type="submit">Send email code</button>
+  </form>
+</div>
+
+{% if pending_email %}
+<div class="card">
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="step" value="verify">
+    <label for="{{ otp_form.code.id_for_label }}">{{ otp_form.code.label }}</label>
+    {{ otp_form.code }}
+    <button type="submit">Create staff account</button>
+  </form>
+</div>
+{% endif %}
+
+<p>Already registered? <a href="{% url 'staff_login' %}">Course staff login</a>.</p>
+{% endblock %}

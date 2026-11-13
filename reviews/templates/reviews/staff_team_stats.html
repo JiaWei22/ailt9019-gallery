@@ -1,0 +1,140 @@
+{% extends "reviews/base.html" %}
+{% block title %}{{ team.name }} · Statistics{% endblock %}
+{% block content %}
+<p class="meta"><a href="{% url 'staff_dashboard' %}">Roster</a> · <a href="{% url 'staff_stats' %}">All teams</a></p>
+<div class="page-head">
+  <div>
+    <h1>{{ team.name }}</h1>
+    <p class="lede">Incoming reviews for this group only. Reviewer IDs on this table. {{ stats.n }} submitted / {{ n_assigned }} assigned.</p>
+  </div>
+  <div class="page-actions">
+    {% if has_pdf %}
+      <a class="btn" href="{% url 'staff_proposal_pdf' team.pk %}" target="_blank" rel="noopener">View PDF</a>
+    {% else %}
+      <span class="status wait">No PDF</span>
+    {% endif %}
+  </div>
+</div>
+<form class="panel import-form" method="post" action="{% url 'staff_replace_group_pdf' team.pk %}" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="section-head">
+    <h2>Replace this group's PDF</h2>
+    <p>This only changes {{ team.name }}. A filename like <code>2.pdf</code> is rejected here if this is not group 2.</p>
+  </div>
+  <div class="import-row">
+    <label class="file-label">
+      <span>Choose PDF</span>
+      <input type="file" name="pdf" accept=".pdf" required>
+    </label>
+    <button type="submit" onclick="return confirm('Replace the PDF for {{ team.name|escapejs }}?');">Replace PDF</button>
+  </div>
+</form>
+{% if members %}
+<p class="meta">
+  Members:
+  {% for member in members %}
+    <a href="{% url 'staff_student_detail' member.pk %}">{{ member.name }}</a>{% if not forloop.last %},{% endif %}
+  {% endfor %}
+</p>
+{% endif %}
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="lbl">Received</div>
+    <div class="num">{{ stats.n }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="lbl">Counted</div>
+    <div class="num">{{ stats.n_counted }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="lbl">Flagged</div>
+    <div class="num">{{ stats.n_flagged }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="lbl">Excluded</div>
+    <div class="num">{{ stats.n_excluded }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="lbl">Mean</div>
+    <div class="num">{% if stats.mean != None %}{{ stats.mean }}{% else %}—{% endif %}</div>
+  </div>
+  <div class="stat-card">
+    <div class="lbl">Median</div>
+    <div class="num">{% if stats.median != None %}{{ stats.median }}{% else %}—{% endif %}</div>
+  </div>
+  <div class="stat-card">
+    <div class="lbl">Min / max</div>
+    <div class="num">{% if stats.min != None %}{{ stats.min }}–{{ stats.max }}{% else %}—{% endif %}</div>
+  </div>
+</div>
+
+<div class="table-scroll">
+<table>
+  <thead>
+    <tr>
+      <th>Reviewer ID</th>
+      <th>BG</th>
+      <th>Pipe</th>
+      <th>Eval</th>
+      <th>Dist</th>
+      <th>Eth</th>
+      <th>Chk</th>
+      <th>Arg</th>
+      <th>Pres</th>
+      <th>C/40</th>
+      <th>D/10</th>
+      <th>Total</th>
+      <th>Flag</th>
+      <th>In totals</th>
+      <th>Suggestions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+      <tr class="{% if not row.review.counted %}excluded{% elif row.flagged %}flagged{% endif %}">
+        <td>{{ row.review.assignment.reviewer.code }}</td>
+        <td>{{ row.review.background }}</td>
+        <td>{{ row.review.pipeline }}</td>
+        <td>{{ row.review.evaluation }}</td>
+        <td>{{ row.review.distribution }}</td>
+        <td>{{ row.review.ethics }}</td>
+        <td>{{ row.review.checkpoints }}</td>
+        <td>{{ row.review.argumentation }}</td>
+        <td>{{ row.review.presentation }}</td>
+        <td>{{ row.review.content_total }}</td>
+        <td>{{ row.review.delivery_total }}</td>
+        <td>{{ row.review.total }}</td>
+        <td>{% if row.flagged %}yes{% else %}no{% endif %}</td>
+        <td>
+          <form class="inline-form" method="post" action="{% url 'staff_toggle_review' team.pk row.review.pk %}">
+            {% csrf_token %}
+            {% if row.review.counted %}
+              <button type="submit" class="btn danger">Exclude</button>
+            {% else %}
+              <button type="submit">Include</button>
+            {% endif %}
+          </form>
+        </td>
+        <td>{{ row.review.suggestions|truncatechars:120 }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="15">No reviews submitted for this submission yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% if pending %}
+<section class="panel">
+  <div class="section-head">
+    <h2>Assigned, not yet submitted</h2>
+  </div>
+  <ul>
+    {% for assignment in pending %}
+      <li>{{ assignment.reviewer.code }}{% if assignment.reviewer.student %} · <a href="{% url 'staff_student_detail' assignment.reviewer.student.pk %}">{{ assignment.reviewer.student.name }}</a>{% endif %}</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endblock %}

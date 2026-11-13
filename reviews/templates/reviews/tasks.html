@@ -1,0 +1,43 @@
+{% extends "reviews/base.html" %}
+{% block title %}{{ event.title }} · AILT9019{% endblock %}
+{% block content %}
+<p class="meta"><a href="{% url 'event_list' %}">All events</a></p>
+<div class="event-banner">
+  <span class="section-kicker">{{ event.get_kind_display }} event</span>
+  <h1>{{ event.title }}</h1>
+  {% if event.description %}<p class="lede">{{ event.description }}</p>{% endif %}
+</div>
+{% include "reviews/event_tabs.html" %}
+<p class="meta">{{ total }} assigned proposal{{ total|pluralize }}.</p>
+{% if not event.is_open %}<p class="banner">{{ event.lock_message }}</p>{% endif %}
+
+{% for bucket in events %}
+  {% for row in bucket.rows %}
+    <article class="assignment-card">
+      <div class="assignment-top">
+        <span class="section-kicker">Review {{ forloop.counter }} of {{ bucket.total }}</span>
+        {% if row.submitted %}
+          <span class="status done">Submitted</span>
+        {% else %}
+          <span class="status wait">Not submitted</span>
+        {% endif %}
+      </div>
+      <h3><a href="{% url 'forum' row.assignment.proposal.pk %}">{{ row.assignment.proposal.anonymous_title }}</a></h3>
+      <p>
+        {% if row.assignment.proposal.file %}
+          <a class="btn secondary" href="{% url 'proposal_file' row.assignment.proposal.pk %}">Download PDF</a>
+          {% if row.submitted %}
+            <a class="btn" href="{% url 'review_form' row.assignment.pk %}">View review</a>
+          {% else %}
+            <a class="btn" href="{% url 'review_form' row.assignment.pk %}">Write review</a>
+          {% endif %}
+        {% else %}
+          <span class="status wait">PDF not uploaded yet</span>
+        {% endif %}
+      </p>
+    </article>
+  {% endfor %}
+{% empty %}
+  <p>No assignments in this event yet.</p>
+{% endfor %}
+{% endblock %}

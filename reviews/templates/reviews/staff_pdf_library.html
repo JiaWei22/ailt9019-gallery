@@ -1,0 +1,54 @@
+{% extends "reviews/base.html" %}
+{% block title %}Uploaded PDFs · AILT9019{% endblock %}
+{% block wrap_class %}wrap-wide{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="section-kicker">Course staff</p>
+    <h1>Uploaded PDFs</h1>
+    <p class="lede">What is stored for each group, and the filename students get when they download. The student name does not include the group.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn secondary" href="{% url 'staff_dashboard' %}">Roster</a>
+  </div>
+</div>
+<p class="meta">{{ n_ready }} / {{ rows|length }} groups have a PDF.</p>
+<div class="table-scroll">
+  <table>
+    <thead>
+      <tr>
+        <th>Group</th>
+        <th>Status</th>
+        <th>Student download name</th>
+        <th>Stored file</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <td><a href="{% url 'staff_team_stats' row.team.pk %}">{{ row.team.name }}</a></td>
+          <td>
+            {% if row.has_pdf %}
+              <span class="status done">PDF ready</span>
+            {% else %}
+              <span class="status wait">No PDF</span>
+            {% endif %}
+          </td>
+          <td class="mono">{{ row.download_name }}</td>
+          <td class="mono">{% if row.stored_name %}{{ row.stored_name }}{% else %}—{% endif %}</td>
+          <td>
+            {% if row.has_pdf %}
+              <a href="{% url 'staff_proposal_pdf' row.team.pk %}" target="_blank" rel="noopener">View PDF</a>
+            {% else %}
+              —
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5">No groups yet. Import the roster first.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "reviews/base.html" %}
+{% block title %}Statistics · AILT9019{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Review statistics</h1>
+    <p class="lede">Per-team totals use counted reviews only. Open a group to see incoming reviews, or a student on the roster to see what they wrote. Student pages never show these flags.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn secondary" href="{% url 'staff_stats_export' %}">Export statistics</a>
+    <a class="btn secondary" href="{% url 'staff_export' %}">Export reviews</a>
+  </div>
+</div>
+
+<div class="table-scroll">
+<table>
+  <thead>
+    <tr>
+      <th>Event</th>
+      <th>Team</th>
+      <th>Submission</th>
+      <th>PDF</th>
+      <th>Received</th>
+      <th>Counted</th>
+      <th>Flagged</th>
+      <th>Excluded</th>
+      <th>Mean</th>
+      <th>Median</th>
+      <th>Range</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+      <tr{% if row.n_flagged %} class="flagged"{% endif %}>
+        <td>{{ row.event }}</td>
+        <td>{{ row.team }}</td>
+        <td>{{ row.title }}</td>
+        <td>
+          {% if row.has_pdf %}
+            <span class="status done">PDF ready</span>
+          {% else %}
+            <span class="status wait">No PDF</span>
+          {% endif %}
+        </td>
+        <td>{{ row.n }}</td>
+        <td>{{ row.n_counted }}</td>
+        <td>{{ row.n_flagged }}</td>
+        <td>{{ row.n_excluded }}</td>
+        <td>{% if row.mean != None %}{{ row.mean }}{% else %}—{% endif %}</td>
+        <td>{% if row.median != None %}{{ row.median }}{% else %}—{% endif %}</td>
+        <td>
+          {% if row.min != None %}{{ row.min }}–{{ row.max }}{% else %}—{% endif %}
+        </td>
+        <td><a href="{% url 'staff_team_stats' row.team_id %}">Open</a></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="12">No submissions yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+<section class="card video-panel" aria-label="{{ label }}"><h2>{{ label }}</h2>{% if video %}{% if external_video_enabled %}<iframe data-video-player referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" loading="lazy" src="https://www.youtube-nocookie.com/embed/{{ video }}?enablejsapi=1" title="{{ label }}" allowfullscreen></iframe><p class="video-playback-status" role="status" aria-live="polite"></p>{% else %}<p>Embedded playback is unavailable. Use the YouTube link below.</p>{% endif %}<p><a href="https://www.youtube.com/watch?v={{ video }}" target="_blank" rel="noopener noreferrer">Open {{ label }} on YouTube</a></p>{% else %}<p>{{ label }} awaiting submission.</p>{% endif %}</section>
+{% if external_video_enabled %}
+<script>
+if (!window.w13VideoPlayersScheduled) {
+  window.w13VideoPlayersScheduled = true;
+  document.addEventListener('DOMContentLoaded', function () {
+    const frames = [...document.querySelectorAll('[data-video-player]')];
+    frames.forEach(function (frame) {
+      const url = new URL(frame.src);
+      url.searchParams.set('origin', window.location.origin);
+      frame.src = url.href;
+    });
+    function init() {
+      frames.forEach(function (frame) {
+        const status = frame.parentElement.querySelector('.video-playback-status');
+        const label = frame.title;
+        new YT.Player(frame, {events: {
+          onReady: function (event) { event.target.getIframe().title = label; },
+          onStateChange: function (event) {
+            if (event.data === 1) status.textContent = 'Playing successfully in this browser.';
+            if (event.data === 0) status.textContent = 'Playback finished.';
+          },
+          onError: function (event) {
+            const errors = {
+              2: 'The video link is invalid. Check and resubmit the link.',
+              5: 'The browser could not play this video. Try another browser or open YouTube.',
+              100: 'YouTube reports this video is unavailable, removed or private. Ask the team to check its visibility.',
+              101: 'YouTube blocks embedded playback for this video. Open it on YouTube. The owner must allow embedding or provide another video.',
+              150: 'YouTube blocks embedded playback for this video. Open it on YouTube. The owner must allow embedding or provide another video.',
+              153: 'YouTube could not identify this website. Report the project ID to course staff.'
+            };
+            status.textContent = (errors[event.data] || 'YouTube could not play this video. Open it on YouTube or report the project ID.') + ' (YouTube error ' + event.data + ')';
+            status.dataset.errorCode = String(event.data);
+          }
+        }});
+      });
+    }
+    if (window.YT && window.YT.Player) init();
+    else {
+      const previous = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = function () { if (previous) previous(); init(); };
+      const script = document.createElement('script');
+      script.src = 'https://www.youtube.com/iframe_api';
+      script.onerror = function () { document.querySelectorAll('.video-playback-status').forEach(function (status) { status.textContent = 'Playback diagnostics could not load. Try the player or open the video on YouTube.'; }); };
+      document.head.appendChild(script);
+    }
+  });
+}
+</script>
+{% endif %}

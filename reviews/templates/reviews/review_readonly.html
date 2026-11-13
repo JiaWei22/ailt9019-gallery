@@ -1,0 +1,58 @@
+{% extends "reviews/base.html" %}
+{% block title %}Your review · AILT9019{% endblock %}
+{% block content %}
+<p class="meta"><a href="{% url 'event_my_reviews' assignment.event.slug %}">Your reviews</a> · <a href="{% url 'forum' assignment.proposal.pk %}">Submission</a></p>
+<h1>Review by {{ current_reviewer.code }}</h1>
+<p class="lede">{{ assignment.proposal.anonymous_title }} · submitted {{ review.submitted_at }}</p>
+
+<div class="table-scroll">
+  <table class="score-sheet">
+    <thead>
+      <tr>
+        <th>Part</th>
+        <th>Criterion</th>
+        <th>Range</th>
+        <th>Score</th>
+        <th>Optional one-line note</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in review.score_rows %}
+        <tr>
+          <td>{{ row.part }}</td>
+          <td>{{ row.label }}</td>
+          <td>0–{{ row.maximum }}</td>
+          <td><strong>{{ row.score }}</strong></td>
+          <td>{{ row.note }}</td>
+        </tr>
+      {% endfor %}
+      <tr class="total-row">
+        <td>Total</td>
+        <td>Sum of all scores</td>
+        <td>0–50</td>
+        <td><strong>{{ review.total }}</strong></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<p class="totals-line">Content {{ review.content_total }} / 40 &nbsp;+&nbsp; Delivery {{ review.delivery_total }} / 10</p>
+
+<section class="section">
+  <div class="section-head">
+    <span class="section-kicker">Overall</span>
+    <h2>Suggestions</h2>
+  </div>
+  <div class="review-box">{% if review.suggestions %}{{ review.suggestions|linebreaksbr }}{% else %}<span class="muted">No overall suggestions.</span>{% endif %}</div>
+</section>
+
+{% if locked %}
+  <p class="banner">{{ lock_message }}</p>
+{% else %}
+  <form method="post" action="{% url 'request_edit' assignment.pk %}">
+    {% csrf_token %}
+    <button type="submit">Request an edit</button>
+  </form>
+  <p class="muted">Requesting an edit unlocks this form so you can change the scores.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,5 @@
+<nav class="event-tabs">
+  <a href="{% url 'event_detail' event.slug %}"{% if event_section == "assigned" %} class="active"{% endif %}>Assigned proposals</a>
+  <a href="{% url 'event_my_reviews' event.slug %}"{% if event_section == "mine" %} class="active"{% endif %}>Your reviews</a>
+  <a href="{% url 'event_feedback' event.slug %}"{% if event_section == "feedback" %} class="active"{% endif %}>Feedback for your team proposal</a>
+</nav>

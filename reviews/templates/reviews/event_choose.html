@@ -1,0 +1,17 @@
+{% extends "reviews/base.html" %}
+{% block title %}{{ choose_title }} · AILT9019{% endblock %}
+{% block content %}
+<h1>{{ choose_title }}</h1>
+<p class="lede">{{ choose_lede }}</p>
+
+{% for bucket in events %}
+  <a class="event-card" href="{{ bucket.href }}">
+    <span class="section-kicker">{{ bucket.event.get_kind_display }}{% if bucket.event.is_open %} · Open{% else %} · Closed{% endif %}</span>
+    <h2>{{ bucket.event.title }}</h2>
+    {% if bucket.event.description %}<p>{{ bucket.event.description }}</p>{% endif %}
+    <p class="meta">{{ bucket.meta }}</p>
+  </a>
+{% empty %}
+  <p>No events available here yet.</p>
+{% endfor %}
+{% endblock %}

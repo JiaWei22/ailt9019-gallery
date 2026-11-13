@@ -1,0 +1,1 @@
+{% if project.material_warnings %}<div class="note" aria-label="Materials checklist"><strong>Materials to check</strong><ul>{% for warning in project.material_warnings %}<li>{{ warning }}</li>{% endfor %}</ul><p>These reminders do not block publication. Video checks are recorded by staff; link format alone does not prove playback.</p></div>{% endif %}

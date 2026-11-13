@@ -1,0 +1,70 @@
+{% extends "reviews/base.html" %}
+{% block title %}Confirm import · AILT9019{% endblock %}
+{% block content %}
+<p class="meta"><a href="{% url 'staff_dashboard' %}">Back to roster</a></p>
+<h1>Check this upload before saving</h1>
+{% if replace %}
+  <p class="lede error">Replace-all is on. Saving will delete the current roster, assignments, and reviews, then import this file. A backup will be written first.</p>
+{% else %}
+  <p class="lede">UID is the unique key. {{ preview.n_new }} new student(s), {{ preview.n_conflicts }} UID(s) already in the database. Choose whether to update those accounts or leave them as they are.</p>
+{% endif %}
+
+<div class="stat-grid">
+  <div class="stat-card"><div class="lbl">In file</div><div class="num">{{ preview.records|length }}</div></div>
+  <div class="stat-card"><div class="lbl">New UIDs</div><div class="num">{{ preview.n_new }}</div></div>
+  <div class="stat-card"><div class="lbl">Already present</div><div class="num">{{ preview.n_conflicts }}</div></div>
+</div>
+
+{% if preview.conflicts %}
+<section class="panel">
+  <div class="section-head">
+    <h2>Existing UIDs</h2>
+    <p>These students are already on the roster. Update overwrites name, group, password, and Reviewer ID (if they have not logged in).</p>
+  </div>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>UID</th>
+          <th>Now</th>
+          <th>File says</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in preview.conflicts %}
+          <tr>
+            <td class="mono">{{ row.uid }}</td>
+            <td>{{ row.current_name }} · {{ row.current_group }} · {{ row.current_reviewer_id|default:"—" }}</td>
+            <td>{{ row.name }} · {{ row.group }} · {{ row.reviewer_id }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+
+<form id="import-confirm" method="post" action="{% url 'staff_import_confirm' %}">
+  {% csrf_token %}
+  <div class="toolbar">
+    {% if replace %}
+      <button type="submit" name="action" value="replace" class="danger">Replace roster</button>
+    {% else %}
+      <button type="submit" name="action" value="update">Update existing and add new</button>
+      <button type="submit" name="action" value="skip" class="secondary">Add new only, skip existing</button>
+    {% endif %}
+    <button type="submit" name="action" value="cancel" class="secondary">Cancel</button>
+  </div>
+</form>
+<script>
+(function () {
+  var form = document.getElementById("import-confirm");
+  if (!form) return;
+  form.addEventListener("submit", function () {
+    window.setTimeout(function () {
+      form.querySelectorAll("button").forEach(function (button) { button.disabled = true; });
+    }, 0);
+  });
+})();
+</script>
+{% endblock %}

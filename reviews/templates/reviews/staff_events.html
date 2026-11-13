@@ -1,0 +1,31 @@
+{% extends "reviews/base.html" %}
+{% block title %}Events · AILT9019{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="section-kicker">Course staff</p>
+    <h1>Review events</h1>
+    <p class="lede">An event is one review campaign. W5 is the proposal event. A later final-report event can reuse the same roster and Reviewer IDs.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn secondary" href="{% url 'staff_dashboard' %}">Roster</a>
+    <a class="btn secondary" href="{% url 'staff_stats' %}">Score statistics</a>
+  </div>
+</div>
+
+{% for row in events %}
+  <article class="event-card static">
+    <span class="section-kicker">{{ row.event.get_kind_display }}{% if row.event.is_open %} · Open{% else %} · Closed{% endif %}</span>
+    <h2>{{ row.event.title }}</h2>
+    <p class="mono">{{ row.event.slug }}</p>
+    {% if row.event.description %}<p>{{ row.event.description }}</p>{% endif %}
+    <p class="meta">{{ row.n_submissions }} submissions · {{ row.n_assignments }} assignments · {{ row.n_reviews }} reviews in</p>
+    <p>
+      <a class="btn" href="{% url 'staff_dashboard' %}">Open roster</a>
+      <a class="btn secondary" href="{% url 'staff_stats' %}">Statistics</a>
+    </p>
+  </article>
+{% empty %}
+  <p>No events yet. Import a roster to create the W5 proposal event.</p>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "reviews/base.html" %}
+{% block title %}Confirm assignment · AILT9019{% endblock %}
+{% block content %}
+<p class="meta"><a href="{% url 'staff_dashboard' %}">Back to roster</a></p>
+<h1>Replace existing review tasks?</h1>
+<p class="lede">{{ preview.n_people_with_tasks }} student(s) already have {{ preview.n_existing_tasks }} assigned task(s). {{ preview.n_submitted_reviews }} submitted review(s) sit on those tasks and will be deleted. Everyone will then be assigned {{ per_student }} other-group proposal(s).</p>
+<form method="post" action="{% url 'staff_assign_reviews_confirm' %}">
+  {% csrf_token %}
+  <div class="toolbar">
+    <button type="submit" name="action" value="replace" class="danger">Replace tasks</button>
+    <button type="submit" name="action" value="cancel" class="secondary">Cancel</button>
+  </div>
+</form>
+{% endblock %}

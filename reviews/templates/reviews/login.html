@@ -1,0 +1,20 @@
+{% extends "reviews/base.html" %}
+{% block title %}Log in · AILT9019{% endblock %}
+{% block content %}
+<h1>Student login</h1>
+<p class="lede">Use the HKU UID or Reviewer ID and the password the course team sent you. Passwords cannot be changed in this system.</p>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+<div class="card">
+  <form method="post">
+    {% csrf_token %}
+    <label for="{{ form.account.id_for_label }}">{{ form.account.label }}</label>
+    {{ form.account }}
+    <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+    {{ form.password }}
+    <button type="submit">Log in</button>
+  </form>
+</div>
+
+<p class="meta">Lost the issued password? Ask the course team. There is no self-service reset.</p>
+{% endblock %}

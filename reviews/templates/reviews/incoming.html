@@ -1,0 +1,45 @@
+{% extends "reviews/base.html" %}
+{% block title %}Feedback for your team proposal · {{ event.title }}{% endblock %}
+{% block content %}
+<p class="meta"><a href="{% url 'incoming_reviews' %}">Choose event</a> · <a href="{% url 'event_list' %}">All events</a></p>
+<div class="event-banner">
+  <span class="section-kicker">{{ event.get_kind_display }} event</span>
+  <h1>{{ event.title }}</h1>
+</div>
+{% include "reviews/event_tabs.html" %}
+<p class="lede">Reviews of <a href="{% url 'forum' proposal.pk %}">your submission</a>. Only Reviewer IDs are shown.</p>
+{% for review in reviews %}
+  <article class="review-box">
+    <span class="section-kicker">Review {{ forloop.counter }} of {{ reviews|length }}</span>
+    <h3>Reviewer {{ review.assignment.reviewer.code }}</h3>
+    <p class="meta">Content {{ review.content_total }}/40 + Delivery {{ review.delivery_total }}/10 = {{ review.total }}/50 · {{ review.submitted_at }}</p>
+    <div class="table-scroll">
+      <table class="score-sheet compact">
+        <thead>
+          <tr>
+            <th>Part</th>
+            <th>Criterion</th>
+            <th>Score</th>
+            <th>Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in review.score_rows %}
+            <tr>
+              <td>{{ row.part }}</td>
+              <td>{{ row.label }}</td>
+              <td>{{ row.score }} / {{ row.maximum }}</td>
+              <td>{{ row.note }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if review.suggestions %}
+      <p><strong>Overall suggestions.</strong> {{ review.suggestions }}</p>
+    {% endif %}
+  </article>
+{% empty %}
+  <p>No reviews yet for this event.</p>
+{% endfor %}
+{% endblock %}

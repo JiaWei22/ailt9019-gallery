@@ -1,0 +1,261 @@
+{% extends "reviews/base.html" %}
+{% block title %}Roster · AILT9019{% endblock %}
+{% block wrap_class %}wrap-wide{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="section-kicker">Course staff</p>
+    <h1>Student roster</h1>
+    <p class="lede">Issue Reviewer IDs and passwords locally first, then upload the finished list. UID is the unique key. Group PDFs must be named by group id.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn secondary" href="{% url 'staff_stats' %}">Statistics</a>
+    <a class="btn secondary" href="{% url 'staff_pdf_library' %}">Uploaded PDFs</a>
+    <a class="btn secondary" href="{% url 'staff_credentials' %}">Export students</a>
+    <a class="btn secondary" href="{% url 'staff_export' %}">Export reviews</a>
+    <a class="btn secondary" href="{% url 'staff_stats_export' %}">Export statistics</a>
+    <form class="inline-form" method="post" action="{% url 'staff_backup_now' %}">
+      {% csrf_token %}
+      <button type="submit" class="secondary">Backup now</button>
+    </form>
+  </div>
+</div>
+<p class="meta">Last backup: {% if last_backup %}<code>{{ last_backup }}</code>{% else %}none yet{% endif %} · PDFs stored for {{ n_pdfs }} / {{ summary.n_groups }} groups.</p>
+
+<section class="panel">
+  <div class="section-head">
+    <span class="section-kicker">Deadline</span>
+    <h2>{% if current_event.is_open %}Reviews are open{% else %}Reviews are locked{% endif %}</h2>
+    <p>Locking stops new scores and edit requests for <strong>{{ current_event.title }}</strong>. Students who click edit see the reason. They can still read what they already submitted.</p>
+  </div>
+  {% if current_event.is_open %}
+    <form method="post" action="{% url 'staff_set_event_lock' current_event.pk %}">
+      {% csrf_token %}
+      <label for="lock-reason">Reason students will see</label>
+      <input id="lock-reason" type="text" name="reason" maxlength="240" required placeholder="the deadline has passed">
+      <button type="submit" name="action" value="lock" class="danger">Lock submissions and edits</button>
+    </form>
+  {% else %}
+    <p class="banner">Students see: {{ current_event.lock_message }}</p>
+    <form method="post" action="{% url 'staff_set_event_lock' current_event.pk %}">
+      {% csrf_token %}
+      <button type="submit" name="action" value="reopen">Reopen</button>
+    </form>
+  {% endif %}
+</section>
+
+<div class="stat-grid">
+  <div class="stat-card"><div class="lbl">Students</div><div class="num">{{ summary.n_students }}</div></div>
+  <div class="stat-card"><div class="lbl">Groups</div><div class="num">{{ summary.n_groups }}</div></div>
+  <div class="stat-card"><div class="lbl">Has logged in</div><div class="num">{{ summary.n_active }}</div></div>
+  <div class="stat-card"><div class="lbl">Never logged in</div><div class="num">{{ summary.n_issued }}</div></div>
+  <div class="stat-card"><div class="lbl">Reviews in</div><div class="num">{{ summary.n_submitted }}<span class="num-sub">/ {{ summary.n_assigned }}</span></div></div>
+  <div class="stat-card"><div class="lbl">Incomplete people</div><div class="num">{{ summary.n_incomplete }}</div></div>
+</div>
+
+<section class="panel">
+  <div class="section-head">
+    <span class="section-kicker">1. Students</span>
+    <h2>Upload the issued list</h2>
+    <p>Required columns: <code>name, uid, email, group, reviewer_id, password</code>. Optional: <code>review_groups</code>. If a UID is already in the database, you will be asked whether to update or skip it. Replace-all deletes reviews — only use it on a clean start.</p>
+  </div>
+  <form id="roster-import" class="import-form" method="post" action="{% url 'staff_import' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="import-row">
+      <label class="file-label">
+        <span>Choose file</span>
+        {{ import_form.roster }}
+      </label>
+      <label class="check-label">
+        {{ import_form.replace }}
+        <span>Replace current roster</span>
+      </label>
+      <button type="submit">Check and upload</button>
+    </div>
+  </form>
+  <p class="meta">
+    <a href="{% url 'staff_roster_template' %}">Empty template</a>
+    ·
+    Local issuer: <code>python scripts/issue_credentials.py input.csv -o credentials.xlsx</code>
+  </p>
+</section>
+
+<section class="panel">
+  <div class="section-head">
+    <span class="section-kicker">2. Proposals</span>
+    <h2>Upload group PDFs</h2>
+    <p>One PDF per group. The filename is the group id: <code>1.pdf</code> for Group 1. Also accepted: <code>Group 1.pdf</code>, <code>group-1.pdf</code>, <code>team_1.pdf</code>. A zip of those files is fine. Extra or missing group ids are reported.</p>
+  </div>
+  <form class="import-form" method="post" action="{% url 'staff_upload_pdfs' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="import-row">
+      <label class="file-label">
+        <span>Choose PDFs or zip</span>
+        <input type="file" name="pdfs" accept=".pdf,.zip" multiple required>
+      </label>
+      <button type="submit">Upload PDFs</button>
+    </div>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="section-head">
+    <span class="section-kicker">3. One student</span>
+    <h2>Add a late account</h2>
+  </div>
+  <form class="add-student-form" method="post" action="{% url 'staff_add_student' %}">
+    {% csrf_token %}
+    <div class="add-grid">
+      <label>{{ add_form.name.label }}{{ add_form.name }}</label>
+      <label>{{ add_form.uid.label }}{{ add_form.uid }}</label>
+      <label>{{ add_form.email.label }}{{ add_form.email }}</label>
+      <label>{{ add_form.group.label }}{{ add_form.group }}</label>
+      <label>{{ add_form.password.label }}{{ add_form.password }}</label>
+      <label>{{ add_form.reviewer_id.label }}{{ add_form.reviewer_id }}</label>
+    </div>
+    <div class="toolbar">
+      <button type="submit">Add student</button>
+    </div>
+  </form>
+</section>
+
+<datalist id="roster-groups">
+  {% for name in group_names %}
+    <option value="{{ name }}"></option>
+  {% endfor %}
+</datalist>
+
+<section class="panel">
+  <div class="section-head">
+    <span class="section-kicker">4. Assign</span>
+    <h2>Review tasks</h2>
+    <p>Each student reviews this many other groups. The draw is shuffled, and nobody reviews their own group. If anyone already has tasks, you will be asked before those tasks are replaced.</p>
+  </div>
+  <form class="import-form" method="post" action="{% url 'staff_assign_reviews' %}">
+    {% csrf_token %}
+    <div class="import-row">
+      <label class="check-label">
+        Proposals each
+        <input type="number" name="per_student" value="1" min="1" max="10" required style="width:4.5em">
+      </label>
+      <button type="submit" class="secondary">Assign review tasks</button>
+    </div>
+  </form>
+</section>
+
+<section class="panel" id="accounts">
+  <div class="section-head">
+    <span class="section-kicker">5. Accounts</span>
+    <h2>Passwords, reviews, and edits</h2>
+  </div>
+  <div class="table-scroll">
+    <table class="roster">
+      <thead>
+        <tr>
+          <th>Group</th>
+          <th>Name</th>
+          <th>UID</th>
+          <th>Reviewer ID</th>
+          <th>Password</th>
+          <th>PDF</th>
+          <th>Reviews</th>
+          <th>Account</th>
+          <th>Edit</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          {% ifchanged row.team %}
+            <tr class="group-band">
+              <td colspan="9">
+                <a href="{% url 'staff_team_stats' row.team_id %}">{{ row.team }}</a>
+                {% if row.has_pdf %}
+                  <span class="status done">PDF ready</span>
+                {% else %}
+                  <span class="status wait">No PDF</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endifchanged %}
+          <tr id="student-{{ row.student.pk }}" class="roster-row{% if focus_id == row.student.pk %} just-updated{% endif %}{% if row.status == 'issued' %} pending{% elif row.status == 'no_id' %} missing{% elif row.assigned and row.submitted < row.assigned %} incomplete{% endif %}">
+            <td><a href="{% url 'staff_team_stats' row.team_id %}">{{ row.team }}</a></td>
+            <td><a href="{% url 'staff_student_detail' row.student.pk %}">{{ row.name }}</a></td>
+            <td class="mono">{{ row.student_id }}</td>
+            <td class="mono">{% if row.reviewer_id %}{{ row.reviewer_id }}{% else %}—{% endif %}</td>
+            <td class="mono">{{ row.issued_password|default:"—" }}</td>
+            <td>
+              {% if row.has_pdf %}
+                <span class="status done">PDF ready</span>
+              {% else %}
+                <span class="status wait">No PDF</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if row.assigned %}
+                <a href="{% url 'staff_student_detail' row.student.pk %}">{{ row.submitted }} / {{ row.assigned }}</a>
+                <div class="tiny">
+                  {% for task in row.tasks %}
+                    <span class="pill {% if task.done %}ok{% else %}wait{% endif %}">{{ task.group }}{% if task.done %} ✓{% endif %}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                —
+              {% endif %}
+              {% if focus_id == row.student.pk and focus_note %}
+                <div class="row-notice {{ focus_level }}">{{ focus_note }}</div>
+              {% endif %}
+            </td>
+            <td>
+              {% if row.status == "active" %}
+                <span class="status done">Logged in</span>
+                {% if row.last_login_at %}<div class="tiny">Last login {{ row.last_login_at|date:"M j, H:i" }}</div>{% endif %}
+              {% elif row.status == "issued" %}
+                <span class="status wait">Never logged in</span>
+              {% else %}
+                <span class="status">No ID</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="account-actions">
+                <form method="post" action="{% url 'staff_change_group' row.student.pk %}">
+                  {% csrf_token %}
+                  <input type="text" name="group" value="{{ row.team }}" list="roster-groups" aria-label="Group for {{ row.name }}" required>
+                  <button type="submit" class="secondary">Move</button>
+                </form>
+                <form method="post" action="{% url 'staff_change_password' row.student.pk %}" onsubmit="return confirm('Change the password for {{ row.name|escapejs }} ({{ row.student_id|escapejs }})? They will need the new password to log in.');">
+                  {% csrf_token %}
+                  <input type="text" name="password" placeholder="New or blank = generate" autocomplete="off" aria-label="Password for {{ row.name }}">
+                  <button type="submit" class="secondary">Set password</button>
+                </form>
+                <form method="post" action="{% url 'staff_delete_student' row.student.pk %}" onsubmit="return confirm('Delete {{ row.name|escapejs }} ({{ row.student_id|escapejs }})? A backup is saved first. Their reviews are deleted.');">
+                  {% csrf_token %}
+                  <button type="submit" class="danger">Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="9">No students yet. Issue credentials locally, then upload the list.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+<script>
+(function () {
+  var form = document.getElementById("roster-import");
+  if (!form) return;
+  form.addEventListener("submit", function () {
+    window.setTimeout(function () {
+      form.querySelectorAll("button").forEach(function (button) { button.disabled = true; });
+    }, 0);
+  });
+})();
+(function () {
+  var id = (location.hash || "").replace("#", "");
+  if (!id) return;
+  var el = document.getElementById(id);
+  if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
+})();
+</script>
+{% endblock %}

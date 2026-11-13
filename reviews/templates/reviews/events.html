@@ -1,0 +1,17 @@
+{% extends "reviews/base.html" %}
+{% block title %}Events · AILT9019{% endblock %}
+{% block content %}
+<h1>Review events</h1>
+<p class="lede">Each event is one campaign. Open an event to see the submissions assigned to you. A later event can cover the final report the same way.</p>
+
+{% for bucket in events %}
+  <a class="event-card" href="{% url 'event_detail' bucket.event.slug %}">
+    <span class="section-kicker">{{ bucket.event.get_kind_display }}{% if bucket.event.is_open %} · Open{% else %} · Closed{% endif %}</span>
+    <h2>{{ bucket.event.title }}</h2>
+    {% if bucket.event.description %}<p>{{ bucket.event.description }}</p>{% endif %}
+    <p class="meta">{{ bucket.done }} / {{ bucket.total }} reviews submitted</p>
+  </a>
+{% empty %}
+  <p>No review events have been assigned to you yet.</p>
+{% endfor %}
+{% endblock %}

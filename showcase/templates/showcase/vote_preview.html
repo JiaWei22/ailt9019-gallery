@@ -1,0 +1,12 @@
+{% extends 'showcase/base.html' %}{% block content %}
+<h1>Review your ballot</h1>
+<p>{{ event.title }} · {{ choices|length }} selected</p>
+<ul class="ballot-confirm-list">{% for p in choices %}<li><span class="project-code">{{ p.code }}</span><strong>{{ p.title }}</strong><small>{{ p.team.name }}</small></li>{% endfor %}</ul>
+<p>{% if previous %}Confirming replaces your previously saved choices.{% else %}Your ballot has not been saved yet.{% endif %}</p>
+<form method="post" action="{% url 'showcase:vote' %}" class="panel">
+{% csrf_token %}<input type="hidden" name="revision" value="{{ revision }}"><input type="hidden" name="event" value="{{ event.pk }}">
+{% for p in choices %}<input type="hidden" name="choices" value="{{ p.pk }}">{% endfor %}
+<div class="page-actions"><button>Save this ballot</button><a href="{{ back_url }}">← Back to choices</a></div>
+</form>
+{% endblock %}
+{% block page_help %}<p class="student-guide-link"><a href="{% url 'showcase:student_guide' %}{% if nav_event %}?event={{ nav_event.pk }}{% endif %}">Student guide ↗</a></p>{% endblock %}

@@ -1,0 +1,8 @@
+{% extends 'showcase/base.html' %}{% block content %}<nav class="page-actions" aria-label="Management navigation"><a href="{% url 'showcase:manage' %}?event={{ event.pk }}">← Back to management</a><span class="preview-badge">Preview · not saved</span></nav>
+<h1>Review import changes</h1><p>No project is changed until you confirm. Existing publication status, reviews and votes are preserved.</p>
+{% for error in errors %}<p class="error">{{ error }}</p>{% endfor %}
+<div class="admin-scroll-window" tabindex="0" role="region" aria-label="Project import changes">{% for row in rows %}<article class="card"><h2>Row {{ row.line }} · {{ row.operation }} · {{ row.team_name }}{% if row.project_id %} · #{{ row.project_id }}{% endif %}</h2>
+{% for change in row.changes %}<p><strong>{{ change.field }}</strong></p><p>Before: {{ change.before|default:'(empty)' }}</p><p>After: {{ change.after|default:'(empty)' }}</p>{% empty %}<p>No content changes.</p>{% endfor %}</article>{% endfor %}</div>
+<form method="post">{% csrf_token %}<input type="hidden" name="event" value="{{ event.pk }}"><input type="hidden" name="action" value="import"><label>CSV source<textarea name="csv" required>{{ csv }}</textarea></label><button>Preview again</button>
+{% if not errors %}<input type="hidden" name="preview_token" value="{{ preview_token }}"><button name="confirm" value="1">Confirm reviewed changes</button>{% endif %}</form>
+{% endblock %}

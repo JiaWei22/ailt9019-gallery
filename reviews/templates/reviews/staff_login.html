@@ -1,0 +1,14 @@
+{% extends "reviews/base.html" %}
+{% block title %}Course staff · AILT9019{% endblock %}
+{% block content %}
+<h1>Course staff login</h1>
+<p class="lede">Staff only. Students use the ordinary login page.</p>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+<form method="post" class="card">
+  {% csrf_token %}
+  <label for="{{ password_form.password.id_for_label }}">Password</label>
+  {{ password_form.password }}
+  <button type="submit">Open staff pages</button>
+</form>
+{% endblock %}
